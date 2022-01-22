@@ -82,7 +82,6 @@
           address (if (= wc-version 1) (first accounts) (last (string/split (first accounts) #":")))
           account (first (filter #(= (:address %) address) visible-accounts))
           selected-account (reagent/atom account)]
-      (println peerMeta "CERSION")
       [react/view styles/acc-sheet
        [react/view styles/proposal-sheet-container
         [react/view styles/proposal-sheet-header
@@ -168,7 +167,6 @@
         dapps-account @(re-frame/subscribe [:dapps-account])
         icon-uri (when (and icons (> (count icons) 0)) (first icons))
         selected-account (reagent/atom dapps-account)]
-    (println wc-version "KEKEKE")
     [react/view styles/acc-sheet
      [react/view styles/proposal-sheet-container
       [react/view styles/proposal-sheet-header
@@ -206,12 +204,10 @@
 
 (defview wallet-connect-proposal-sheet []
   (letsubs [proposal-metadata [:wallet-connect/proposal-metadata]]
-           (let [test "FDSFDSFDSFDS"]
-             (println test proposal-metadata)
-             [bottom-panel/animated-bottom-panel
-              proposal-metadata
-              session-proposal-sheet
-              #(re-frame/dispatch [:hide-wallet-connect-sheet])])))
+           [bottom-panel/animated-bottom-panel
+            proposal-metadata
+            session-proposal-sheet
+            #(re-frame/dispatch [:hide-wallet-connect-sheet])]))
 
 (defview wallet-connect-success-sheet-view []
   (letsubs [session [:wallet-connect/session-connected]]
