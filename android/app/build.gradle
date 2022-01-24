@@ -205,6 +205,7 @@ android {
      **/
     project.ext {
         buildUrl = getBuildUrl()
+        excludeAppGlideModule = true
     }
     /**
     * Fix for: (https://github.com/ReactiveX/RxJava/issues/4445)
@@ -358,6 +359,9 @@ dependencies {
     implementation 'com.github.status-im:function:0.0.1'
     implementation 'com.facebook.fresco:fresco:2.2.0'
     implementation 'com.facebook.fresco:animated-gif:2.2.0'
+    implementation "com.github.bumptech.glide:glide:4.12.0"
+    implementation "com.github.bumptech.glide:okhttp3-integration:4.12.0"
+    annotationProcessor "com.github.bumptech.glide:compiler:4.12.0"
 }
 
 def getLocalNDKDir = { ->
