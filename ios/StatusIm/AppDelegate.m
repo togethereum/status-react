@@ -8,6 +8,7 @@
  */
 
 #import "AppDelegate.h"
+#import "StatusDownloaderOperation.h"
 #import <ReactNativeNavigation/ReactNativeNavigation.h>
 
 #import <asl.h>
@@ -22,6 +23,8 @@
 
 #import <UserNotifications/UserNotifications.h>
 #import <RNCPushNotificationIOS.h>
+
+#import <SDWebImage/SDWebImageDownloaderConfig.h>
 
  /*
 #if DEBUG
@@ -45,7 +48,7 @@ static void InitializeFlipper(UIApplication *application) {
 #endif
   */
 
-@implementation AppDelegate 
+@implementation AppDelegate
 {
     UIView *_blankView;
 }
@@ -83,6 +86,8 @@ static void InitializeFlipper(UIApplication *application) {
 
   UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
   center.delegate = self;
+
+  SDWebImageDownloaderConfig.defaultDownloaderConfig.operationClass = [StatusDownloaderOperation class];
 
   return YES;
 }
@@ -124,7 +129,7 @@ static void InitializeFlipper(UIApplication *application) {
     [UIView animateWithDuration:0.5 animations:^{
       _blankView.alpha = 1;
     }];
-  } 
+  }
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
@@ -169,13 +174,13 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
 {
   NSDictionary *userInfo = notification.request.content.userInfo;
-  
+
   NSString *notificationType = userInfo[@"notificationType"]; // check your notification type
   if (![notificationType  isEqual: @"local-notification"]) { // we silence all notifications which are not local
     completionHandler(UNNotificationPresentationOptionNone);
     return;
   }
- 
+
   completionHandler(UNAuthorizationOptionSound | UNAuthorizationOptionAlert | UNAuthorizationOptionBadge);
 }
 
