@@ -16,20 +16,27 @@ import com.facebook.react.modules.network.OkHttpClientProvider;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Interceptor;
+import okhttp3.tls.HandshakeCertificates;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.RuntimeException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+
+import im.status.ethereum.module.StatusPackage;
+
+
+/*import java.security.cert.CertificateException;
 import java.security.SecureRandom;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.X509TrustManager;*/
 
 @Excludes({com.dylanvann.fastimage.FastImageOkHttpProgressGlideModule.class, com.bumptech.glide.integration.okhttp3.OkHttpLibraryGlideModule.class})
 @GlideModule
@@ -52,40 +59,29 @@ public class StatusGlide extends AppGlideModule {
       interceptor = null;
     }
 
-    // replace with okhttp-tls and accept all system CA + our cert
-    final TrustManager[] trustAllCerts = new TrustManager[]{
-      new X509TrustManager() {
-        @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-        }
-
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[]{};
-        }
-      }
-    };
-
-    SSLSocketFactory sslSocketFactory;
+    String certPem = StatusPackage.getImageTLSCert();
+    X509Certificate cert;
 
     try {
-      final SSLContext sslContext = SSLContext.getInstance("TLS");
-      sslContext.init(null, trustAllCerts, new SecureRandom());
-      sslSocketFactory = sslContext.getSocketFactory();
+      CertificateFactory cf = CertificateFactory.getInstance("X.509");
+      cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certPem.getBytes()));
     } catch(Exception e) {
-      sslSocketFactory = null;
+      Log.e("StatusGlide", "Could not parse certificate");
+      cert = null;
     }
+
+    HandshakeCertificates clientCertificates = new HandshakeCertificates.Builder()
+      .addPlatformTrustedCertificates()
+      .addTrustedCertificate(cert)
+      .build();
 
     OkHttpClient client = OkHttpClientProvider
       .getOkHttpClient()
       .newBuilder()
       .addInterceptor(interceptor)
-      .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0])
+      .sslSocketFactory(clientCertificates.sslSocketFactory(), clientCertificates.trustManager())
       .build();
+
     OkHttpUrlLoader.Factory factory = new OkHttpUrlLoader.Factory(client);
     registry.replace(GlideUrl.class, InputStream.class, factory);
   }
