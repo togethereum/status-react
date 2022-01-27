@@ -24,7 +24,9 @@ import java.lang.reflect.Method;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.SecureRandom;
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -51,16 +53,14 @@ public class StatusGlide extends AppGlideModule {
     }
 
     // replace with okhttp-tls and accept all system CA + our cert
-    final TrustManager[] trustNoCerts = new TrustManager[]{
+    final TrustManager[] trustAllCerts = new TrustManager[]{
       new X509TrustManager() {
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-          throw new CertificateException("Trust no one");
         }
 
         @Override
         public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-          throw new CertificateException("Trust no one");
         }
 
         @Override
@@ -73,8 +73,8 @@ public class StatusGlide extends AppGlideModule {
     SSLSocketFactory sslSocketFactory;
 
     try {
-      final SSLContext sslContext = SSLContext.getInstance("SSL");
-      sslContext.init(null, trustNoCerts, new SecureRandom());
+      final SSLContext sslContext = SSLContext.getInstance("TLS");
+      sslContext.init(null, trustAllCerts, new SecureRandom());
       sslSocketFactory = sslContext.getSocketFactory();
     } catch(Exception e) {
       sslSocketFactory = null;
@@ -84,7 +84,7 @@ public class StatusGlide extends AppGlideModule {
       .getOkHttpClient()
       .newBuilder()
       .addInterceptor(interceptor)
-      .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustNoCerts[0])
+      .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0])
       .build();
     OkHttpUrlLoader.Factory factory = new OkHttpUrlLoader.Factory(client);
     registry.replace(GlideUrl.class, InputStream.class, factory);
