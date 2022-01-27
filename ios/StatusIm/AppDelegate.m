@@ -16,6 +16,7 @@
 #import "RCTBundleURLProvider.h"
 #import "RNSplashScreen.h"
 #import "RCTLinkingManager.h"
+#import "Statusgo.h"
 
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
@@ -25,6 +26,8 @@
 
 #import <SDWebImage/SDWebImageDownloaderConfig.h>
 #import <SDWebImage/SDWebImageDownloaderOperation.h>
+
+#import <Security/Security.h>
 
 @interface StatusDownloaderOperation : SDWebImageDownloaderOperation
 
@@ -195,7 +198,22 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler {
   if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust] &&
       [challenge.protectionSpace.host isEqualToString:@"localhost"]) {
-    __block NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+
+    NSURLSessionAuthChallengeDisposition disposition = NSURLSessionAuthChallengeCancelAuthenticationChallenge;
+    __block NSURLCredential *credential = nil;
+
+    NSString *pemCert = StatusgoImageServerTLSCert();
+    pemCert = [pemCert stringByReplacingOccurrencesOfString:@"-----BEGIN CERTIFICATE-----\n" withString:@""];
+    pemCert = [pemCert stringByReplacingOccurrencesOfString:@"\n-----END CERTIFICATE-----" withString:@""];
+    NSData *derCert = [[NSData alloc] initWithBase64EncodedData:pemCert options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    SecCertificateRef certRef = SecCertificateCreateWithData(kCFDefaultAllocator, derCert);
+    SecTrustSetAnchorCertificates(challenge.protectionSpace.serverTrust, @[certRef]);
+    if (SecTrustEvaluateWithError(challenge.protectionSpace.serverTrust, NULL)) {
+      disposition = NSURLSessionAuthChallengeUseCredential;
+      credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+    }
+
+    CFMakeCollectable(certRef);
 
     if (completionHandler) {
       completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
