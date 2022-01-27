@@ -16,7 +16,6 @@
 #import "RCTBundleURLProvider.h"
 #import "RNSplashScreen.h"
 #import "RCTLinkingManager.h"
-#import "Statusgo.h"
 
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
@@ -28,6 +27,9 @@
 #import <SDWebImage/SDWebImageDownloaderOperation.h>
 
 #import <Security/Security.h>
+
+//TODO: properly import the framework
+extern NSString* StatusgoImageServerTLSCert();
 
 @interface StatusDownloaderOperation : SDWebImageDownloaderOperation
 
@@ -216,7 +218,7 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
     CFMakeCollectable(certRef);
 
     if (completionHandler) {
-      completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+      completionHandler(disposition, credential);
     }
   } else {
     [super URLSession:session task:task didReceiveChallenge:challenge completionHandler:completionHandler];
