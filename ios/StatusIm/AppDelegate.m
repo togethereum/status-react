@@ -208,14 +208,17 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
     pemCert = [pemCert stringByReplacingOccurrencesOfString:@"-----BEGIN CERTIFICATE-----\n" withString:@""];
     pemCert = [pemCert stringByReplacingOccurrencesOfString:@"\n-----END CERTIFICATE-----" withString:@""];
     NSData *derCert = [[NSData alloc] initWithBase64EncodedData:pemCert options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    SecCertificateRef certRef = SecCertificateCreateWithData(kCFDefaultAllocator, derCert);
-    SecTrustSetAnchorCertificates(challenge.protectionSpace.serverTrust, @[certRef]);
-    if (SecTrustEvaluateWithError(challenge.protectionSpace.serverTrust, NULL)) {
+    SecCertificateRef certRef = SecCertificateCreateWithData(NULL, derCert);
+    CFArrayRef certArrayRef = CFArrayCreate(NULL, (void *)&certRef, 1, NULL);
+    SecTrustSetAnchorCertificates(challenge.protectionSpace.serverTrust, certArrayRef);
+
+    SecTrustResultType trustResult;
+    SecTrustEvaluate(challenge.protectionSpace.serverTrust, &trustResult);
+
+    if (trustResult == kSecTrustResultProceed) {
       disposition = NSURLSessionAuthChallengeUseCredential;
       credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
     }
-
-    CFMakeCollectable(certRef);
 
     if (completionHandler) {
       completionHandler(disposition, credential);
