@@ -193,17 +193,12 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 @implementation StatusDownloaderOperation
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler {
-  if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
-    //TODO: it should accept all system certs + our trusted cert
-    NSURLSessionAuthChallengeDisposition disposition = NSURLSessionAuthChallengeCancelAuthenticationChallenge;
-
-    __block NSURLCredential *credential = nil;
-
-    credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-    disposition = NSURLSessionAuthChallengeUseCredential;
+  if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust] &&
+      [challenge.protectionSpace.host isEqualToString:@"localhost"]) {
+    __block NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
 
     if (completionHandler) {
-      completionHandler(disposition, nil);
+      completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
     }
   } else {
     [super URLSession:session task:task didReceiveChallenge:challenge completionHandler:completionHandler];
