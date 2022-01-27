@@ -208,7 +208,7 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
     pemCert = [pemCert stringByReplacingOccurrencesOfString:@"-----BEGIN CERTIFICATE-----\n" withString:@""];
     pemCert = [pemCert stringByReplacingOccurrencesOfString:@"\n-----END CERTIFICATE-----" withString:@""];
     NSData *derCert = [[NSData alloc] initWithBase64EncodedData:pemCert options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    SecCertificateRef certRef = SecCertificateCreateWithData(NULL, derCert);
+    SecCertificateRef certRef = SecCertificateCreateWithData(NULL, (__bridge_retained CFDataRef) derCert);
     CFArrayRef certArrayRef = CFArrayCreate(NULL, (void *)&certRef, 1, NULL);
     SecTrustSetAnchorCertificates(challenge.protectionSpace.serverTrust, certArrayRef);
 
