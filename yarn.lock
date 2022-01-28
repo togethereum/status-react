@@ -6623,7 +6623,7 @@ react-native-draggable-flatlist@^3.0.3:
   resolved "https://registry.yarnpkg.com/react-native-draggable-flatlist/-/react-native-draggable-flatlist-3.0.3.tgz#e85503585253be01ad251f78d5b341ac22f9d952"
   integrity sha512-bDro6aqQMvvTm/CuHre9dAjSBKosAfZRLDx3nmrjOz799kxcn0bq+uCB6yF6m+g1Xd/gVPl7E3Ss4uX+oPUlHg==
 
-"react-native-fast-image@git+https://github.com/status-im/react-native-fast-image.git#v8.5.11-status":
+"react-native-fast-image@git+https://github.com/status-im/react-native-fast-image.git#v8.5.11-precompiled":
   version "8.5.11"
   resolved "git+https://github.com/status-im/react-native-fast-image.git#6d0c7f9f935d2167e9a7106e845bdcacfba62114"
 
