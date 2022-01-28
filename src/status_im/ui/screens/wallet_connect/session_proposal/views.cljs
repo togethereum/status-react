@@ -70,10 +70,13 @@
   (letsubs [visible-accounts @(re-frame/subscribe [:visible-accounts-without-watch-only])
             dapps-account [:dapps-account]
             sessions [:wallet-connect/sessions]
+            sessions-legacy [:wallet-connect-legacy/sessions]
             managed-session [:wallet-connect/session-managed]]
     (let [{:keys [topic]} (when-not (= wc-version 1) session-data)
+          peerId (when (= wc-version 1) (get-in session-data [:params 0 :peerId]))
+          session-legacy (when (= wc-version 1) (first (filter #(= (get-in % [:params 0 :peerId]) peerId) sessions-legacy)))
           {:keys [peer state] :as session} (first (filter #(= (:topic %) topic) sessions))
-          {:keys [params]} (when (= wc-version 1) session-data)
+          {:keys [params]} (when (= wc-version 1) session-legacy)
           {:keys [metadata]} peer
           {:keys [peerMeta]} (first params)
           {:keys [accounts]} (if (= wc-version 1) (first params) state)
@@ -82,6 +85,7 @@
           address (if (= wc-version 1) (first accounts) (last (string/split (first accounts) #":")))
           account (first (filter #(= (:address %) address) visible-accounts))
           selected-account (reagent/atom account)]
+      (println peerId session-legacy "2HEY")
       [react/view styles/acc-sheet
        [react/view styles/proposal-sheet-container
         [react/view styles/proposal-sheet-header
@@ -125,12 +129,15 @@
                              :blurType :light}]
            [react/view styles/blur-view]))])))
 
-(defview app-management-sheet-view [{:keys [topic wc-version] :as session}]
+(defview app-management-sheet-view [{:keys [wc-version] :as session}]
   (letsubs [sessions [:wallet-connect/sessions]
+            sessions-legacy [:wallet-connect-legacy/sessions]
             visible-accounts [:visible-accounts-without-watch-only]]
-    (let [{:keys [topic]} (when-not (= wc-version 1) session)
+    (let [peerId (when (= wc-version 1) (get-in session [:params 0 :peerId]))
+          session-legacy (when (= wc-version 1) (first (filter #(= (get-in % [:params 0 :peerId]) peerId) sessions-legacy)))
+          {:keys [topic]} (when-not (= wc-version 1) session)
           {:keys [peer state]} (first (filter #(= (:topic %) topic) sessions))
-          {:keys [params]} (when (= wc-version 1) session)
+          {:keys [params]} (when (= wc-version 1) session-legacy)
           {:keys [metadata]} peer
           {:keys [peerMeta]} (first params)
           {:keys [accounts]} (if (= wc-version 1) (first params) state)
