@@ -85,7 +85,6 @@
           address (if (= wc-version 1) (first accounts) (last (string/split (first accounts) #":")))
           account (first (filter #(= (:address %) address) visible-accounts))
           selected-account (reagent/atom account)]
-      (println peerId session-legacy "2HEY")
       [react/view styles/acc-sheet
        [react/view styles/proposal-sheet-container
         [react/view styles/proposal-sheet-header
