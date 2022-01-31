@@ -105,6 +105,7 @@
    "wakuext_addContact" {}
    "wakuext_updateMailservers" {}
    "wakuext_sendEmojiReaction" {}
+   "wakuext_disconnectActiveMailserver" {}
    "wakuext_sendEmojiReactionRetraction" {}
    "wakuext_emojiReactionsByChatID" {}
    "wakuext_getLinkPreviewWhitelist" {}

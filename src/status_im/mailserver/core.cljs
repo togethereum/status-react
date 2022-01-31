@@ -124,11 +124,14 @@
      :mailserver/update-mailservers [[address]]}))
 
 (fx/defn disconnect-from-mailserver
+  {:events [::disconnect-from-mailserver]}
   [{:keys [db] :as cofx}]
   (let [{:keys [address]}       (fetch-current db)
         {:keys [peers-summary]} db]
     {:db (dissoc db :mailserver/current-request :mailserver/fetching-gaps-in-progress)
-     :mailserver/remove-peer address}))
+     ::json-rpc/call [{:method "wakuext_disconnectActiveMailserver"
+                       :params []
+                       :on-success #(log/info "disconnected from mailserver")}]}))
 
 (defn fetch-use-mailservers? [{:keys [db]}]
   (get-in db [:multiaccount :use-mailservers?]))
@@ -204,7 +207,9 @@
                          :on-success #(do
                                         (log/info "fetched historical messages")
                                         (re-frame/dispatch [::request-success %]))
-                         :on-failure #(log/error "failed retrieve historical messages" %)}]})))
+                         :on-failure #(do
+                                        (log/error "failed retrieve historical messages" %)
+                                        (re-frame/dispatch [::disconnect-from-mailserver]))}]})))
 
 (fx/defn connected-to-mailserver
   [{:keys [db] :as cofx}]
