@@ -215,7 +215,7 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
     SecTrustResultType trustResult;
     SecTrustEvaluate(challenge.protectionSpace.serverTrust, &trustResult);
 
-    if (trustResult == kSecTrustResultProceed) {
+    if ((trustResult == kSecTrustResultProceed) || (trustResult == kSecTrustResultUnspecified)) {
       disposition = NSURLSessionAuthChallengeUseCredential;
       credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
     }
