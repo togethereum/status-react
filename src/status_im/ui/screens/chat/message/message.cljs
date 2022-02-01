@@ -19,6 +19,7 @@
             [status-im.ui.screens.chat.message.reactions :as reactions]
             [status-im.ui.screens.chat.image.preview.views :as preview]
             [quo.core :as quo]
+                        [taoensso.timbre :as log]
             [status-im.utils.config :as config]
             [reagent.core :as reagent]
             [status-im.ui.screens.chat.components.reply :as components.reply]
@@ -341,12 +342,14 @@
 (def image-max-height 192)
 
 (defn image-set-size [dimensions]
-  (fn [width height]
-    (when (< width height)
-      ;; if width less than the height we reduce width proportionally to height
-      (let [k (/ height image-max-height)]
-        (when (not= (/ width k) (first @dimensions))
-          (reset! dimensions [(/ width k) image-max-height]))))))
+  (fn [evt]
+    (let [width (.-width (.-nativeEvent evt))
+          height (.-height (.-nativeEvent evt))]
+      (when (< width height)
+        ;; if width less than the height we reduce width proportionally to height
+        (let [k (/ height image-max-height)]
+          (when (not= (/ width k) (first @dimensions))
+            (reset! dimensions [(/ width k) image-max-height])))))))
 
 (defn message-content-image
   [{:keys [content outgoing in-popover?] :as message}
@@ -354,7 +357,6 @@
   (let [dimensions (reagent/atom [image-max-width image-max-height])
         visible (reagent/atom false)
         uri (:image content)]
-    (react/image-get-size uri (image-set-size dimensions))
     (fn []
       (let [style-opts {:outgoing outgoing
                         :width    (first @dimensions)
@@ -372,6 +374,7 @@
           [react/view {:style               (style/image-message style-opts)
                        :accessibility-label :image-message}
            [react/fast-image {:style       (dissoc style-opts :outgoing)
+                              :on-load     (image-set-size dimensions)
                               :source      {:uri uri}}
             [react/view {:style (style/image-message-border style-opts)}]]]]]))))
 
