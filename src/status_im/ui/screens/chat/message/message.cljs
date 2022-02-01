@@ -99,11 +99,11 @@
      (if (and image
               ;; Disabling images for public-chats
               (not public?))
-       [react/image {:style  {:width            56
-                              :height           56
-                              :background-color :black
-                              :border-radius    4}
-                     :source {:uri image}}]
+       [react/fast-image {:style  {:width            56
+                                   :height           56
+                                   :background-color :black
+                                   :border-radius    4}
+                          :source {:uri image}}]
        [react/text {:style           (style/quoted-message-text (and outgoing (not pinned)))
                     :number-of-lines 5}
         (components.reply/get-quoted-text-with-mentions parsed-text)])]))
@@ -371,9 +371,8 @@
                                      :disabled      in-popover?}
           [react/view {:style               (style/image-message style-opts)
                        :accessibility-label :image-message}
-           [react/image {:style       (dissoc style-opts :outgoing)
-                         :resize-mode :cover
-                         :source      {:uri uri}}
+           [react/fast-image {:style       (dissoc style-opts :outgoing)
+                              :source      {:uri uri}}
             [react/view {:style (style/image-message-border style-opts)}]]]]]))))
 
 (defmulti ->message :content-type)
