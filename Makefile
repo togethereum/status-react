@@ -201,7 +201,7 @@ release-fdroid: export ANDROID_APK_SIGNED = false
 release-fdroid: export ANDROID_ABI_SPLIT = false
 release-fdroid: export ANDROID_ABI_INCLUDE = armeabi-v7a;arm64-v8a;x86;x86_64
 release-fdroid: ##@build Build release for F-Droid
-	sed -i -e '$$aGOOGLE_FREE=1' .env.release
+	scripts/google-free.sh
 	scripts/release-android.sh
 
 release-ios: export TARGET := ios

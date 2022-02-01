@@ -22,6 +22,8 @@ import im.status.ethereum.keycard.RNStatusKeycardPackage;
 import im.status.ethereum.module.StatusPackage;
 import im.status.ethereum.pushnotifications.PushNotificationPackage;
 
+import com.wix.reactnativenotifications.RNNotificationsPackage;
+
 public class MainApplication extends NavigationApplication {
 
     private final ReactNativeHost mReactNativeHost = new NavigationReactNativeHost(this) {
