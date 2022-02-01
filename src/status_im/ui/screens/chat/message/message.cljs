@@ -19,7 +19,6 @@
             [status-im.ui.screens.chat.message.reactions :as reactions]
             [status-im.ui.screens.chat.image.preview.views :as preview]
             [quo.core :as quo]
-                        [taoensso.timbre :as log]
             [status-im.utils.config :as config]
             [reagent.core :as reagent]
             [status-im.ui.screens.chat.components.reply :as components.reply]
