@@ -207,9 +207,9 @@
                          :on-success #(do
                                         (log/info "fetched historical messages")
                                         (re-frame/dispatch [::request-success %]))
-                         :on-failure #(do
-                                        (log/error "failed retrieve historical messages" %)
-                                        (re-frame/dispatch [::disconnect-from-mailserver]))}]})))
+                         :on-error #(do
+                                      (log/error "failed retrieve historical messages" %)
+                                      (re-frame/dispatch [::disconnect-from-mailserver]))}]})))
 
 (fx/defn connected-to-mailserver
   [{:keys [db] :as cofx}]
