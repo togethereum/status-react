@@ -44,8 +44,7 @@
 (defn download-image-http [base64-uri on-success]
   (-> (.config ReactNativeBlobUtil (clj->js {:path temp-image-url}))
       (.fetch "GET" base64-uri)
-      (.then (fn [res] 
-        (on-success (.path res))))
+      (.then #(on-success (.path %)))
       (.catch #(log/error "could not save image"))))
 
 (defn save-to-gallery [path] (.save CameraRoll path))

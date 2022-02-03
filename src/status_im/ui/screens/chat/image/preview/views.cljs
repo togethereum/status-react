@@ -9,8 +9,7 @@
             ["react-native-image-viewing" :default image-viewing]
             [status-im.utils.share :as share]
             [taoensso.timbre :as log]
-            [status-im.chat.models.images :as images]
-            [clojure.string :as string]))
+            [status-im.chat.models.images :as images]))
 
 (defn share [path]
   (share/open {:url (str (when platform/android? "file://") path)
