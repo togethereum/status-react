@@ -205,7 +205,6 @@ android {
      **/
     project.ext {
         buildUrl = getBuildUrl()
-        excludeAppGlideModule = true
     }
     /**
     * Fix for: (https://github.com/ReactiveX/RxJava/issues/4445)
