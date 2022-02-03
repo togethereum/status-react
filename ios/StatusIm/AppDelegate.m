@@ -19,6 +19,7 @@
 
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
+#import <React/RCTHTTPRequestHandler.h>
 
 #import <UserNotifications/UserNotifications.h>
 #import <RNCPushNotificationIOS.h>
@@ -32,7 +33,7 @@
 extern NSString* StatusgoImageServerTLSCert();
 
 @interface StatusDownloaderOperation : SDWebImageDownloaderOperation
-
+  + (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler;
 @end
 
  /*
@@ -197,34 +198,52 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 
 @implementation StatusDownloaderOperation
 
++ (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler {
+  NSURLSessionAuthChallengeDisposition disposition = NSURLSessionAuthChallengeCancelAuthenticationChallenge;
+  __block NSURLCredential *credential = nil;
+
+  NSString *pemCert = StatusgoImageServerTLSCert();
+  pemCert = [pemCert stringByReplacingOccurrencesOfString:@"-----BEGIN CERTIFICATE-----\n" withString:@""];
+  pemCert = [pemCert stringByReplacingOccurrencesOfString:@"\n-----END CERTIFICATE-----" withString:@""];
+  NSData *derCert = [[NSData alloc] initWithBase64EncodedData:pemCert options:NSDataBase64DecodingIgnoreUnknownCharacters];
+  SecCertificateRef certRef = SecCertificateCreateWithData(NULL, (__bridge_retained CFDataRef) derCert);
+  CFArrayRef certArrayRef = CFArrayCreate(NULL, (void *)&certRef, 1, NULL);
+  SecTrustSetAnchorCertificates(challenge.protectionSpace.serverTrust, certArrayRef);
+
+  SecTrustResultType trustResult;
+  SecTrustEvaluate(challenge.protectionSpace.serverTrust, &trustResult);
+
+  if ((trustResult == kSecTrustResultProceed) || (trustResult == kSecTrustResultUnspecified)) {
+    disposition = NSURLSessionAuthChallengeUseCredential;
+    credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+  }
+
+  if (completionHandler) {
+    completionHandler(disposition, credential);
+  }
+}
+
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler {
   if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust] &&
       [challenge.protectionSpace.host isEqualToString:@"localhost"]) {
-
-    NSURLSessionAuthChallengeDisposition disposition = NSURLSessionAuthChallengeCancelAuthenticationChallenge;
-    __block NSURLCredential *credential = nil;
-
-    NSString *pemCert = StatusgoImageServerTLSCert();
-    pemCert = [pemCert stringByReplacingOccurrencesOfString:@"-----BEGIN CERTIFICATE-----\n" withString:@""];
-    pemCert = [pemCert stringByReplacingOccurrencesOfString:@"\n-----END CERTIFICATE-----" withString:@""];
-    NSData *derCert = [[NSData alloc] initWithBase64EncodedData:pemCert options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    SecCertificateRef certRef = SecCertificateCreateWithData(NULL, (__bridge_retained CFDataRef) derCert);
-    CFArrayRef certArrayRef = CFArrayCreate(NULL, (void *)&certRef, 1, NULL);
-    SecTrustSetAnchorCertificates(challenge.protectionSpace.serverTrust, certArrayRef);
-
-    SecTrustResultType trustResult;
-    SecTrustEvaluate(challenge.protectionSpace.serverTrust, &trustResult);
-
-    if ((trustResult == kSecTrustResultProceed) || (trustResult == kSecTrustResultUnspecified)) {
-      disposition = NSURLSessionAuthChallengeUseCredential;
-      credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
-    }
-
-    if (completionHandler) {
-      completionHandler(disposition, credential);
-    }
+    [StatusDownloaderOperation URLSession:session task:task didReceiveChallenge:challenge completionHandler:completionHandler];
   } else {
     [super URLSession:session task:task didReceiveChallenge:challenge completionHandler:completionHandler];
+  }
+}
+
+@end
+
+@implementation RCTHTTPRequestHandler (SelfSigned)
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler {
+  if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust] &&
+      [challenge.protectionSpace.host isEqualToString:@"localhost"]) {
+    [StatusDownloaderOperation URLSession:session task:task didReceiveChallenge:challenge completionHandler:completionHandler];
+  } else {
+    if (completionHandler) {
+      completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust]);
+    }
   }
 }
 
