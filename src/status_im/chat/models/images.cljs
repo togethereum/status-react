@@ -42,7 +42,7 @@
 (def temp-image-url (str (fs/cache-dir) "/StatusIm_Image.jpeg"))
 
 (defn download-image-http [base64-uri on-success]
-  (-> (.config ReactNativeBlobUtil (clj->js {:trusty platform/ios? 
+  (-> (.config ReactNativeBlobUtil (clj->js {:trusty platform/ios?
                                              :path temp-image-url}))
       (.fetch "GET" base64-uri)
       (.then #(on-success (.path %)))
