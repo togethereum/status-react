@@ -820,6 +820,15 @@
                         (string/lower-case search-filter))
                accounts)))))
 
+(defn validate-account-to-add
+  [address accounts]
+  (cond
+    (not (ethereum/address? address))
+    :t/invalid-address
+
+    (some #(when (= (:address %) address) %) accounts)
+    :t/address-already-added))
+  
 (re-frame/reg-sub
  :add-account-disabled?
  :<- [:multiaccount/accounts]
@@ -830,8 +839,7 @@
          :generate
          false
          :watch
-         (or (not (ethereum/address? address))
-             (some #(when (= (:address %) address) %) accounts))
+         (validate-account-to-add address accounts)
          :key
          (string/blank? (security/safe-unmask-data private-key))
          :seed
