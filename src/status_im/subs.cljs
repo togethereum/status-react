@@ -820,6 +820,10 @@
                         (string/lower-case search-filter))
                accounts)))))
 
+(defn add-account-to-watch-validation-error
+  [accounts]  
+  (str "Account " (:account accounts) " already in watch list: " accounts))
+  
 (re-frame/reg-sub
  :add-account-disabled?
  :<- [:multiaccount/accounts]
@@ -830,8 +834,7 @@
          :generate
          false
          :watch
-         (or (not (ethereum/address? address))
-             (some #(when (= (:address %) address) %) accounts))
+         (add-account-to-watch-validation-error accounts)
          :key
          (string/blank? (security/safe-unmask-data private-key))
          :seed

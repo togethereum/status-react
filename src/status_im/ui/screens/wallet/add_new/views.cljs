@@ -66,6 +66,7 @@
        :monospace           true
        :placeholder         (i18n/label :t/enter-address)
        :accessibility-label :add-account-enter-watch-address
+       :error               (str "info: " account-error)
        :on-change-text      #(re-frame/dispatch [:wallet.accounts/set-account-to-watch %])}]
      [quo/text-input
       {:label               (i18n/label :t/password)
@@ -147,7 +148,7 @@
                          :style                        {:flex 1 :padding-top 20}}
       (when (or (not keycard?)
                 (= type :watch))
-        [settings add-account entered-password])
+        [settings (assoc add-account :account-error add-account-disabled?) entered-password])
       [common-settings account]]
      [toolbar/toolbar
       {:show-border? true
