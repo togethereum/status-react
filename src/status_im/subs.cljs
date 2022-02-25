@@ -821,8 +821,9 @@
                accounts)))))
 
 (defn add-account-to-watch-validation-error
-  [accounts]  
-  (str "Account " (:account accounts) " already in watch list: " accounts))
+  [accounts address]  
+  (when-let [already-added-account (some #(when (= (:address %) address) %) accounts)]
+    {:error (str "Account already added: " (:name already-added-account))}))
   
 (re-frame/reg-sub
  :add-account-disabled?
@@ -834,7 +835,7 @@
          :generate
          false
          :watch
-         (add-account-to-watch-validation-error accounts)
+         (add-account-to-watch-validation-error accounts address)
          :key
          (string/blank? (security/safe-unmask-data private-key))
          :seed
